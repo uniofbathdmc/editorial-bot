@@ -35,14 +35,17 @@ class Bot < SlackRubyBot::Bot
       relevant_content = []
       element = heading_tag.next_element
 
-      # Get the text of all the next elements until one is a header of equivalent or higher level
-      until (element.to_s =~ /^<h/) && (element.to_s[2].to_i <= heading_level)
-        puts content
+      # Process the text of all the next elements until one of the following happens:
+      # - the next element is a header of equivalent or higher level
+      # - the next element does not exist and the section is over
+      until (element.to_s =~ /^<h[0-#{heading_level}]/) || element.nil?
         content = element.text
+
         # If it's a heading, add asterisks
         if element.to_s =~ /^<h/
           content = "*#{content}*"
         end
+
         # If it's an unordered list, add hyphens before each list item
         if element.to_s =~ /^<ul/
           list_items = []
@@ -52,6 +55,7 @@ class Bot < SlackRubyBot::Bot
           end
           content = list_items.join("\n>")
         end
+
         # If it's an ordered list, add numbers before each list item
         if element.to_s =~ /^<ol/
           list_items = []
@@ -63,8 +67,10 @@ class Bot < SlackRubyBot::Bot
           end
           content = list_items.join("\n>")
         end
+
         # Add the content
         relevant_content << "> #{content}"
+
         # Move on to the next element
         element = element.next_element
       end
@@ -75,7 +81,7 @@ class Bot < SlackRubyBot::Bot
 
       # Get out of this loop to avoid onslaught of text
       found_something = true
-      return
+      break
     end
 
     # If we didn't find anything, notify the user
