@@ -10,12 +10,76 @@ class Bot < SlackRubyBot::Bot
   end
 
   # Try to scrape the editorial guide
-  match /^rules (?<topic>[\w\s]*)$/ do |client, data, match|
-    # Get the search term
+  match /^style guide for (?<topic>[\w\s]*)$/ do |client, data, match|
+    # Get the search term in lowercase
+    search_term = [match[:topic]][0].downcase
+
     # Open the page in Nokogiri
-    # Check each heading
-    # If the heading has the search term, save it
-    # Spit out the info, or return a "can't find that" response
+    html = open("http://www.bath.ac.uk/guides/editorial-style-guide/")
+    doc = Nokogiri::HTML(html)
+
+    found_something = false
+
+    client.say(text: "Looking for '#{search_term}'...", channel: data.channel)
+
+    # Check each heading to see if it matches the search term
+    doc.css('h1,h2,h3,h4,h5,h6').each do |heading_tag|
+      heading = heading_tag.text.downcase
+
+      # Skip this heading unless it matches the search term
+      next unless heading.include?(search_term)
+
+      # Check what level this heading is so we know when to stop
+      heading_level = heading_tag.to_s[2].to_i
+
+      relevant_content = []
+      element = heading_tag.next_element
+
+      # Get the text of all the next elements until one is a header of equivalent or higher level
+      until (element.to_s =~ /^<h/) && (element.to_s[2].to_i <= heading_level)
+        puts content
+        content = element.text
+        # If it's a heading, add asterisks
+        if element.to_s =~ /^<h/
+          content = "*#{content}*"
+        end
+        # If it's an unordered list, add hyphens before each list item
+        if element.to_s =~ /^<ul/
+          list_items = []
+          element.children.each do |list_item|
+            next unless list_item.to_s =~ /^<li/
+            list_items << "- #{list_item.content.chomp}"
+          end
+          content = list_items.join("\n>")
+        end
+        # If it's an ordered list, add numbers before each list item
+        if element.to_s =~ /^<ol/
+          list_items = []
+          n = 1
+          element.children.each do |list_item|
+            next unless list_item.to_s =~ /^<li/
+            list_items << "#{n}. #{list_item.content.chomp}"
+            n += 1
+          end
+          content = list_items.join("\n>")
+        end
+        # Add the content
+        relevant_content << "> #{content}"
+        # Move on to the next element
+        element = element.next_element
+      end
+
+      output = relevant_content.join("\n>\n")
+
+      client.say(text: "*Style guide for #{heading}*:\n\n#{output}", channel: data.channel)
+
+      # Get out of this loop to avoid onslaught of text
+      found_something = true
+      return
+    end
+
+    # If we didn't find anything, notify the user
+    client.say(text: "Sorry, I couldn't find anything about '#{search_term}'", channel: data.channel) if found_something == false
   end
 
   # Find relevant guide and give them the link
