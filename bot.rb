@@ -10,9 +10,9 @@ class Bot < SlackRubyBot::Bot
   end
 
   # Try to scrape the editorial guide
-  match /^style guide for (?<topic>[\w\s]*)$/ do |client, data, match|
+  match /^style guide for (?<topic>[\w\s\-\'’]*)$/ do |client, data, match|
     # Get the search term in lowercase
-    search_term = [match[:topic]][0].downcase
+    search_term = [match[:topic]][0].downcase.chomp
 
     # Open the page in Nokogiri
     html = open("http://www.bath.ac.uk/guides/editorial-style-guide/")
@@ -24,7 +24,7 @@ class Bot < SlackRubyBot::Bot
 
     # Check each heading to see if it matches the search term
     doc.css('h1,h2,h3,h4,h5,h6').each do |heading_tag|
-      heading = heading_tag.text.downcase
+      heading = heading_tag.text.downcase.chomp
 
       # Skip this heading unless it matches the search term
       next unless heading.include?(search_term)
