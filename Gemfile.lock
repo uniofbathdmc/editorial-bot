@@ -37,9 +37,12 @@ GEM
     hitimes (1.2.4)
     i18n (0.7.0)
     json (2.0.2)
+    mini_portile2 (2.1.0)
     minitest (5.9.1)
     multipart-post (2.0.0)
     nio4r (1.2.1)
+    nokogiri (1.6.8.1)
+      mini_portile2 (~> 2.1.0)
     slack-ruby-bot (0.9.0)
       hashie
       slack-ruby-client (>= 0.6.0)
@@ -65,6 +68,7 @@ PLATFORMS
 
 DEPENDENCIES
   celluloid-io
+  nokogiri
   slack-ruby-bot
 
 BUNDLED WITH

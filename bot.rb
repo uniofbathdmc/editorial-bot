@@ -1,9 +1,21 @@
 require 'slack-ruby-bot'
+require 'nokogiri'
+require 'open-uri'
+require 'uri'
 
 class Bot < SlackRubyBot::Bot
   # Freak out if someone mentions bulleted lists
   match /([Bb][Uu][Ll][Ll][Ee][Tt]*[Ee]*[Dd]*\s[Ll][Ii][Ss][Tt])/ do |client, data, match|
     client.say(text: 'NOOOOOOOOOO', channel: data.channel)
+  end
+
+  # Try to scrape the editorial guide
+  match /^rules (?<topic>[\w\s]*)$/ do |client, data, match|
+    # Get the search term
+    # Open the page in Nokogiri
+    # Check each heading
+    # If the heading has the search term, save it
+    # Spit out the info, or return a "can't find that" response
   end
 
   # Find relevant guide and give them the link
