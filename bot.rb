@@ -4,11 +4,6 @@ require 'open-uri'
 require 'uri'
 
 class Bot < SlackRubyBot::Bot
-  # Freak out if someone mentions bulleted lists
-  match /([Bb][Uu][Ll][Ll][Ee][Tt]*[Ee]*[Dd]*\s[Ll][Ii][Ss][Tt])/ do |client, data, match|
-    client.say(text: 'NOOOOOOOOOO', channel: data.channel)
-  end
-
   # Try to scrape the editorial guide
   match /^style guide for (?<topic>[\w\s\-\'’]*)$/ do |client, data, match|
     # Get the search term in lowercase
@@ -102,6 +97,11 @@ class Bot < SlackRubyBot::Bot
     else
     	client.say(text: "Read this: http://www.bath.ac.uk/#{manual}", channel: data.channel)
     end
+  end
+
+  # Freak out if someone mentions bulleted lists
+  match /([Bb][Uu][Ll][Ll][Ee][Tt]*[Ee]*[Dd]*\s[Ll][Ii][Ss][Tt])/ do |client, data, match|
+    client.say(text: 'NOOOOOOOOOO', channel: data.channel)
   end
 
   # Data time
