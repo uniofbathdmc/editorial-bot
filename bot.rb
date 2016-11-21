@@ -34,32 +34,7 @@ class Bot < SlackRubyBot::Bot
       # - the next element is a header of equivalent or higher level
       # - the next element does not exist and the section is over
       until (element.to_s =~ /^<h[0-#{heading_level}]/) || element.nil?
-        content = element.text
-
-        # If it's a heading, add asterisks
-        content = "*#{content}*" if element.to_s =~ /^<h/
-
-        # If it's an unordered list, add hyphens before each list item
-        if element.to_s =~ /^<ul/
-          list_items = []
-          element.children.each do |list_item|
-            next unless list_item.to_s =~ /^<li/
-            list_items << "- #{list_item.content.chomp}"
-          end
-          content = list_items.join("\n>")
-        end
-
-        # If it's an ordered list, add numbers before each list item
-        if element.to_s =~ /^<ol/
-          list_items = []
-          n = 1
-          element.children.each do |list_item|
-            next unless list_item.to_s =~ /^<li/
-            list_items << "#{n}. #{list_item.content.chomp}"
-            n += 1
-          end
-          content = list_items.join("\n>")
-        end
+        content = format_for_slack(element)
 
         # Add the content
         relevant_content << "> #{content}"
@@ -159,6 +134,47 @@ class Bot < SlackRubyBot::Bot
       team: @urls[:team_profile],
       team_profile: @urls[:team_profile]
     }
+  end
+
+  # Formatting
+  def self.format_for_slack(element)
+    content = if element.to_s =~ /^<h/
+                format_headers(element)
+              elsif element.to_s =~ /^<ul/
+                format_unordered_lists(element)
+              elsif element.to_s =~ /^<ol/
+                format_ordered_lists(element)
+              else
+                element.text
+              end
+    content
+  end
+
+  # Add bold to headers
+  def self.format_headers(element)
+    "*#{element.text}*"
+  end
+
+  # For unordered lists, add hyphens before each list item
+  def self.format_unordered_lists(element)
+    list_items = []
+    element.children.each do |list_item|
+      next unless list_item.to_s =~ /^<li/
+      list_items << "- #{list_item.content.chomp}"
+    end
+    list_items.join("\n>")
+  end
+
+  # For ordered lists, add numbers before each list item
+  def self.format_ordered_lists(element)
+    list_items = []
+    n = 1
+    element.children.each do |list_item|
+      next unless list_item.to_s =~ /^<li/
+      list_items << "#{n}. #{list_item.content.chomp}"
+      n += 1
+    end
+    list_items.join("\n>")
   end
 end
 
