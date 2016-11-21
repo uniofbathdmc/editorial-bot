@@ -5,12 +5,12 @@ require 'uri'
 
 class Bot < SlackRubyBot::Bot
   # Try to scrape the editorial guide
-  match /^style guide for (?<topic>[\w\s\-\'’]*)$/ do |client, data, match|
+  match(/^style guide for (?<topic>[\w\s\-\'’]*)$/) do |client, data, match|
     # Get the search term in lowercase
     search_term = [match[:topic]][0].downcase.chomp
 
     # Open the page in Nokogiri
-    html = open("http://www.bath.ac.uk/guides/editorial-style-guide/")
+    html = open('http://www.bath.ac.uk/guides/editorial-style-guide/')
     doc = Nokogiri::HTML(html)
 
     found_something = false
@@ -37,9 +37,7 @@ class Bot < SlackRubyBot::Bot
         content = element.text
 
         # If it's a heading, add asterisks
-        if element.to_s =~ /^<h/
-          content = "*#{content}*"
-        end
+        content = "*#{content}*" if element.to_s =~ /^<h/
 
         # If it's an unordered list, add hyphens before each list item
         if element.to_s =~ /^<ul/
@@ -84,51 +82,51 @@ class Bot < SlackRubyBot::Bot
   end
 
   # Find relevant guide and give them the link
-  match /^rtfm (?<topic>[\w\s]*)$/ do |client, data, match|
+  match(/^rtm (?<topic>[\w\s]*)$/) do |client, data, match|
     # Get the user input
     user_input = [match[:topic]][0]
     # Work out the possible hash key, swapping spaces for underscores
-    key = user_input.gsub(' ','_')
+    key = user_input.tr(' ', '_')
     # Get the link to the manual
     manual = @guides[key.to_sym]
     # If the link exists, post it to Slack
     if manual.nil?
       client.say(text: "I don't know any guides about #{user_input}", channel: data.channel)
     else
-    	client.say(text: "Read this: http://www.bath.ac.uk/#{manual}", channel: data.channel)
+      client.say(text: "Read this: http://www.bath.ac.uk/#{manual}", channel: data.channel)
     end
   end
 
   # Freak out if someone mentions bulleted lists
-  match /([Bb][Uu][Ll][Ll][Ee][Tt]*[Ee]*[Dd]*\s[Ll][Ii][Ss][Tt])/ do |client, data, match|
+  match(/([Bb][Uu][Ll][Ll][Ee][Tt]*[Ee]*[Dd]*\s[Ll][Ii][Ss][Tt])/) do |client, data|
     client.say(text: 'NOOOOOOOOOO', channel: data.channel)
   end
 
   # Data time
   def self.define_urls
     @urls = {
-      announcement: "guides/creating-an-announcement/",
-      campaign: "guides/creating-a-campaign",
-      case_study: "/guides/creating-a-case-study/",
-      corporate_information: "guides/creating-a-corporate-information-page/",
-      editorial_style_guide: "guides/editorial-style-guide/",
-      event: "guides/creating-an-event-page/",
-      formatting: "guides/formatting-text-in-the-content-publisher/",
-      guide: "guides/creating-a-guide/",
-      image_style_guide: "guides/using-images-on-the-website/",
-      landing_page: "guides/creating-a-landing-page/",
-      location: "guides/creating-a-location-page/",
-      person_profile: "guides/creating-a-person-profile/",
-      project: "guides/creating-a-project-page/",
-      publication: "guides/creating-a-publication-page/",
-      service_start: "guides/creating-a-service-start/",
-      team_profile: "guides/creating-a-team-profile/"
+      announcement: 'guides/creating-an-announcement/',
+      campaign: 'guides/creating-a-campaign',
+      case_study: '/guides/creating-a-case-study/',
+      corporate_information: 'guides/creating-a-corporate-information-page/',
+      editorial_style_guide: 'guides/editorial-style-guide/',
+      event: 'guides/creating-an-event-page/',
+      formatting: 'guides/formatting-text-in-the-content-publisher/',
+      guide: 'guides/creating-a-guide/',
+      image_style_guide: 'guides/using-images-on-the-website/',
+      landing_page: 'guides/creating-a-landing-page/',
+      location: 'guides/creating-a-location-page/',
+      person_profile: 'guides/creating-a-person-profile/',
+      project: 'guides/creating-a-project-page/',
+      publication: 'guides/creating-a-publication-page/',
+      service_start: 'guides/creating-a-service-start/',
+      team_profile: 'guides/creating-a-team-profile/'
     }
   end
 
   def self.define_guides
     # First get all the URLs
-    self.define_urls
+    define_urls
 
     # Match the search term to the right URL
     @guides = {
