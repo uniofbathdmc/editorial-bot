@@ -34,7 +34,7 @@ class Bot < SlackRubyBot::Bot
       # - the next element is a header of equivalent or higher level
       # - the next element does not exist and the section is over
       until (element.to_s =~ /^<h[0-#{heading_level}]/) || element.nil?
-        content = format_for_slack(element)
+        content = Formatting.format_for_slack(element)
 
         # Add the content
         relevant_content << "> #{content}"
@@ -58,12 +58,13 @@ class Bot < SlackRubyBot::Bot
 
   # Find relevant guide and give them the link
   match(/^rtm (?<topic>[\w\s]*)$/) do |client, data, match|
+    guide_urls = GuideData.define_guides
     # Get the user input
     user_input = [match[:topic]][0]
     # Work out the possible hash key, swapping spaces for underscores
     key = user_input.tr(' ', '_')
     # Get the link to the manual
-    manual = @guides[key.to_sym]
+    manual = guide_urls[key.to_sym]
     # If the link exists, post it to Slack
     if manual.nil?
       client.say(text: "I don't know any guides about #{user_input}", channel: data.channel)
@@ -76,10 +77,12 @@ class Bot < SlackRubyBot::Bot
   match(/([Bb][Uu][Ll][Ll][Ee][Tt]*[Ee]*[Dd]*\s[Ll][Ii][Ss][Tt])/) do |client, data|
     client.say(text: 'NOOOOOOOOOO', channel: data.channel)
   end
+end
 
-  # Data time
+# Set up the data for finding guides
+class GuideData
   def self.define_urls
-    @urls = {
+    {
       announcement: 'guides/creating-an-announcement/',
       campaign: 'guides/creating-a-campaign',
       case_study: '/guides/creating-a-case-study/',
@@ -101,42 +104,44 @@ class Bot < SlackRubyBot::Bot
 
   def self.define_guides
     # First get all the URLs
-    define_urls
+    urls = define_urls
 
     # Match the search term to the right URL
-    @guides = {
-      announcement: @urls[:announcement],
-      campaign: @urls[:campaign],
-      case_study: @urls[:case_study],
-      corporate: @urls[:corporate_information],
-      corporate_information: @urls[:corporate_information],
-      corp_info: @urls[:corporate_information],
-      corporate_info: @urls[:corporate_information],
-      editorial: @urls[:editorial_style_guide],
-      editorial_style_guide: @urls[:editorial_style_guide],
-      event: @urls[:event],
-      formatting: @urls[:formatting],
-      group: @urls[:landing_page],
-      guide: @urls[:guide],
-      images: @urls[:image_style_guide],
-      landing_page: @urls[:landing_page],
-      location: @urls[:location],
-      markdown: @urls[:formatting],
-      org: @urls[:landing_page],
-      organisation: @urls[:landing_page],
-      person: @urls[:person_profile],
-      person_profile: @urls[:person_profile],
-      project: @urls[:project],
-      publication: @urls[:publication],
-      service: @urls[:service_start],
-      service_start: @urls[:service_start],
-      style_guide: @urls[:editorial_style_guide],
-      team: @urls[:team_profile],
-      team_profile: @urls[:team_profile]
+    {
+      announcement: urls[:announcement],
+      campaign: urls[:campaign],
+      case_study: urls[:case_study],
+      corporate: urls[:corporate_information],
+      corporate_information: urls[:corporate_information],
+      corp_info: urls[:corporate_information],
+      corporate_info: urls[:corporate_information],
+      editorial: urls[:editorial_style_guide],
+      editorial_style_guide: urls[:editorial_style_guide],
+      event: urls[:event],
+      formatting: urls[:formatting],
+      group: urls[:landing_page],
+      guide: urls[:guide],
+      images: urls[:image_style_guide],
+      landing_page: urls[:landing_page],
+      location: urls[:location],
+      markdown: urls[:formatting],
+      org: urls[:landing_page],
+      organisation: urls[:landing_page],
+      person: urls[:person_profile],
+      person_profile: urls[:person_profile],
+      project: urls[:project],
+      publication: urls[:publication],
+      service: urls[:service_start],
+      service_start: urls[:service_start],
+      style_guide: urls[:editorial_style_guide],
+      team: urls[:team_profile],
+      team_profile: urls[:team_profile]
     }
   end
+end
 
-  # Formatting
+# Apply formatting for Slack
+class Formatting
   def self.format_for_slack(element)
     content = if element.to_s =~ /^<h/
                 format_headers(element)
@@ -178,6 +183,4 @@ class Bot < SlackRubyBot::Bot
   end
 end
 
-# Starting up
-Bot.define_guides
 Bot.run
