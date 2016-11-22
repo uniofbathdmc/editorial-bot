@@ -5,66 +5,50 @@ require 'uri'
 
 class Bot < SlackRubyBot::Bot
   # Try to scrape the editorial guide
-  match(/^style guide for (?<topic>[\w\s\-\'’]*)$/) do |client, data, match|
-    # Get the search term in lowercase
-    search_term = [match[:topic]][0].downcase.chomp
+  match(/^style guide for (?<term>[\w\s\-\'’]*)$/) do |client, data, match|
+    search_term = clean_user_input(match)
+
+    client.say(text: "Looking for '#{search_term}'...", channel: data.channel)
 
     # Open the page in Nokogiri
     html = open('http://www.bath.ac.uk/guides/editorial-style-guide/')
     doc = Nokogiri::HTML(html)
 
-    found_something = false
-
-    client.say(text: "Looking for '#{search_term}'...", channel: data.channel)
+    matches = false
 
     # Check each heading to see if it matches the search term
     doc.css('h1,h2,h3,h4,h5,h6').each do |heading_tag|
       heading = heading_tag.text.downcase.chomp
 
-      # Skip this heading unless it matches the search term
       next unless heading.include?(search_term)
 
-      # Check what level this heading is so we know when to stop
-      heading_level = heading_tag.to_s[2].to_i
-
-      relevant_content = []
-      element = heading_tag.next_element
-
-      # Process the text of all the next elements until one of the following happens:
-      # - the next element is a header of equivalent or higher level
-      # - the next element does not exist and the section is over
-      until (element.to_s =~ /^<h[0-#{heading_level}]/) || element.nil?
-        content = Formatting.format_for_slack(element)
-
-        # Add the content
-        relevant_content << "> #{content}"
-
-        # Move on to the next element
-        element = element.next_element
-      end
-
-      output = relevant_content.join("\n>\n")
+      output = Scraper.process_sections(heading_tag)
 
       client.say(text: "*Style guide for #{heading}*:\n\n#{output}", channel: data.channel)
 
       # Get out of this loop to avoid onslaught of text
-      found_something = true
+      matches = true
       break
     end
 
+    # matches = Scraper.check_for_matches(doc)
+
     # If we didn't find anything, notify the user
-    client.say(text: "Sorry, I couldn't find anything about '#{search_term}'", channel: data.channel) if found_something == false
+    client.say(text: "Sorry, I couldn't find anything about '#{search_term}'", channel: data.channel) if matches == false
   end
 
   # Find relevant guide and give them the link
-  match(/^rtm (?<topic>[\w\s]*)$/) do |client, data, match|
+  match(/^rtm (?<term>[\w\s]*)$/) do |client, data, match|
     guide_urls = GuideData.define_guides
-    # Get the user input
-    user_input = [match[:topic]][0]
+
+    user_input = clean_user_input(match)
+
     # Work out the possible hash key, swapping spaces for underscores
     key = user_input.tr(' ', '_')
+
     # Get the link to the manual
     manual = guide_urls[key.to_sym]
+
     # If the link exists, post it to Slack
     if manual.nil?
       client.say(text: "I don't know any guides about #{user_input}", channel: data.channel)
@@ -76,6 +60,60 @@ class Bot < SlackRubyBot::Bot
   # Freak out if someone mentions bulleted lists
   match(/([Bb][Uu][Ll][Ll][Ee][Tt]*[Ee]*[Dd]*\s[Ll][Ii][Ss][Tt])/) do |client, data|
     client.say(text: 'NOOOOOOOOOO', channel: data.channel)
+  end
+
+  def self.clean_user_input(match)
+    [match[:term]][0].downcase.chomp
+  end
+end
+
+# Scraping HTML
+class Scraper
+  def self.check_for_matches(doc)
+    found_something = false
+
+    # Check each heading to see if it matches the search term
+    doc.css('h1,h2,h3,h4,h5,h6').each do |heading_tag|
+      heading = heading_tag.text.downcase.chomp
+
+      next unless heading.include?(search_term)
+
+      output = Scraper.process_sections(heading_tag)
+
+      client.say(text: "*Style guide for #{heading}*:\n\n#{output}", channel: data.channel)
+
+      # Get out of this loop to avoid onslaught of text
+      found_something = true
+      break
+    end
+
+    found_something
+  end
+
+  def self.find_heading_level(heading_tag)
+    heading_tag.to_s[2].to_i
+  end
+
+  def self.process_sections(heading_tag)
+    # Check what level this heading is so we know when to stop
+    heading_level = Scraper.find_heading_level(heading_tag)
+
+    relevant_content = []
+    element = heading_tag.next_element
+
+    # Process the text of all the next elements until either
+    # the next element is a header of equivalent or higher level
+    # or the next element does not exist and the section is over
+    until (element.to_s =~ /^<h[0-#{heading_level}]/) || element.nil?
+      content = Formatting.format_for_slack(element)
+
+      # Add the content
+      relevant_content << "> #{content}"
+
+      # Move on to the next element
+      element = element.next_element
+    end
+    relevant_content.join("\n>\n")
   end
 end
 
@@ -142,17 +180,17 @@ end
 
 # Apply formatting for Slack
 class Formatting
+  # Check and apply formatting
   def self.format_for_slack(element)
-    content = if element.to_s =~ /^<h/
-                format_headers(element)
-              elsif element.to_s =~ /^<ul/
-                format_unordered_lists(element)
-              elsif element.to_s =~ /^<ol/
-                format_ordered_lists(element)
-              else
-                element.text
-              end
-    content
+    if element.to_s =~ /^<h/
+      format_headers(element)
+    elsif element.to_s =~ /^<ul/
+      format_unordered_lists(element)
+    elsif element.to_s =~ /^<ol/
+      format_ordered_lists(element)
+    else
+      element.text
+    end
   end
 
   # Add bold to headers
