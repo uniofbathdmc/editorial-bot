@@ -4,20 +4,21 @@ require 'open-uri'
 require 'uri'
 
 class Bot < SlackRubyBot::Bot
+  def self.load_resources
+    @editorial_guide = Scraper.get_page_content('http://www.bath.ac.uk/guides/editorial-style-guide/')
+    @guide_urls = GuideData.define_guide_search_terms
+  end
+
   # Try to scrape the editorial guide
   match(/^style guide for (?<term>[\w\s\-\'’]*)$/) do |client, data, match|
     search_term = clean_user_input(match)
 
     client.say(text: "Looking for '#{search_term}'...", channel: data.channel)
 
-    # Open the page in Nokogiri
-    html = open('http://www.bath.ac.uk/guides/editorial-style-guide/')
-    doc = Nokogiri::HTML(html)
-
     matches = false
 
     # Check each heading to see if it matches the search term
-    doc.css('h1,h2,h3,h4,h5,h6').each do |heading_tag|
+    @editorial_guide.css('h1,h2,h3,h4,h5,h6').each do |heading_tag|
       heading = heading_tag.text.downcase.chomp
 
       next unless heading.include?(search_term)
@@ -39,15 +40,13 @@ class Bot < SlackRubyBot::Bot
 
   # Find relevant guide and give them the link
   match(/^rtm (?<term>[\w\s]*)$/) do |client, data, match|
-    guide_urls = GuideData.define_guide_search_terms
-
     user_input = clean_user_input(match)
 
     # Work out the possible hash key, swapping spaces for underscores
     key = user_input.tr(' ', '_')
 
     # Get the link to the manual
-    manual = guide_urls[key.to_sym]
+    manual = @guide_urls[key.to_sym]
 
     # If the link exists, post it to Slack
     if manual.nil?
@@ -69,6 +68,11 @@ end
 
 # Scraping HTML
 class Scraper
+  def self.get_page_content(url)
+    html = open(url)
+    Nokogiri::HTML(html)
+  end
+
   def self.check_for_matches(doc)
     found_something = false
 
@@ -221,4 +225,5 @@ class Formatting
   end
 end
 
+Bot.load_resources
 Bot.run
