@@ -58,7 +58,7 @@ class Bot < SlackRubyBot::Bot
   end
 
   # Freak out if someone mentions bulleted lists
-  match(/([Bb][Uu][Ll][Ll][Ee][Tt]*[Ee]*[Dd]*\s[Ll][Ii][Ss][Tt])/) do |client, data|
+  match(/(bullet*e?d?\slist)/i) do |client, data|
     client.say(text: 'NOOOOOOOOOO', channel: data.channel)
   end
 
