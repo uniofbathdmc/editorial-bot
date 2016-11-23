@@ -39,7 +39,7 @@ class Bot < SlackRubyBot::Bot
 
   # Find relevant guide and give them the link
   match(/^rtm (?<term>[\w\s]*)$/) do |client, data, match|
-    guide_urls = GuideData.define_guides
+    guide_urls = GuideData.define_guide_search_terms
 
     user_input = clean_user_input(match)
 
@@ -140,7 +140,7 @@ class GuideData
     }
   end
 
-  def self.define_guides
+  def self.define_guide_search_terms
     # First get all the URLs
     urls = define_urls
 
