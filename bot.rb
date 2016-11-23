@@ -3,39 +3,26 @@ require 'nokogiri'
 require 'open-uri'
 require 'uri'
 
+# Bot functions
 class Bot < SlackRubyBot::Bot
   def self.load_resources
     @editorial_guide = Scraper.get_page_content('http://www.bath.ac.uk/guides/editorial-style-guide/')
     @guide_urls = GuideData.define_guide_search_terms
   end
 
-  # Try to scrape the editorial guide
+  # Search the editorial style guide for guidance
   match(/^style guide for (?<term>[\w\s\-\'’]*)$/) do |client, data, match|
     search_term = clean_user_input(match)
 
     client.say(text: "Looking for '#{search_term}'...", channel: data.channel)
 
-    matches = false
+    matches = Scraper.check_for_matches(@editorial_guide, search_term)
 
-    # Check each heading to see if it matches the search term
-    @editorial_guide.css('h1,h2,h3,h4,h5,h6').each do |heading_tag|
-      heading = heading_tag.text.downcase.chomp
-
-      next unless heading.include?(search_term)
-
-      output = Scraper.process_sections(heading_tag)
-
-      client.say(text: "*Style guide for #{heading}*:\n\n#{output}", channel: data.channel)
-
-      # Get out of this loop to avoid onslaught of text
-      matches = true
-      break
+    if matches == false
+      client.say(text: "Sorry, I couldn't find anything about '#{search_term}'", channel: data.channel)
+    else
+      client.say(text: matches, channel: data.channel)
     end
-
-    # matches = Scraper.check_for_matches(doc)
-
-    # If we didn't find anything, notify the user
-    client.say(text: "Sorry, I couldn't find anything about '#{search_term}'", channel: data.channel) if matches == false
   end
 
   # Find relevant guide and give them the link
@@ -73,25 +60,17 @@ class Scraper
     Nokogiri::HTML(html)
   end
 
-  def self.check_for_matches(doc)
-    found_something = false
-
-    # Check each heading to see if it matches the search term
-    doc.css('h1,h2,h3,h4,h5,h6').each do |heading_tag|
+  def self.check_for_matches(page, search_term)
+    page.css('h1,h2,h3,h4,h5,h6').each do |heading_tag|
       heading = heading_tag.text.downcase.chomp
 
-      next unless heading.include?(search_term)
-
-      output = Scraper.process_sections(heading_tag)
-
-      client.say(text: "*Style guide for #{heading}*:\n\n#{output}", channel: data.channel)
-
-      # Get out of this loop to avoid onslaught of text
-      found_something = true
-      break
+      if heading.include?(search_term)
+        output = process_sections(heading_tag)
+        return "*Style guide for #{heading}*:\n\n#{output}"
+      end
     end
 
-    found_something
+    false
   end
 
   def self.find_heading_level(heading_tag)
