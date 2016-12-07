@@ -74,7 +74,7 @@ class Scraper
   end
 
   def self.find_heading_level(heading_tag)
-    heading_tag.to_s[2].to_i
+    heading_tag.name[1].to_i
   end
 
   def self.process_sections(heading_tag)
@@ -84,10 +84,13 @@ class Scraper
     relevant_content = []
     element = heading_tag.next_element
 
+    puts "START: #{heading_tag.content} - #{heading_level}"
+    puts "CURRENT: #{element.content} - #{element.name[1].to_i}"
+
     # Process the text of all the next elements until either
     # the next element is a header of equivalent or higher level
     # or the next element does not exist and the section is over
-    until (element.to_s =~ /^<h[0-#{heading_level}]/) || element.nil?
+    until element.name[1].to_i.between?(1, heading_level) || element.nil?
       content = Formatting.format_for_slack(element)
 
       # Add the content
