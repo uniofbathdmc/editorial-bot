@@ -84,13 +84,9 @@ class Scraper
     relevant_content = []
     element = heading_tag.next_element
 
-    puts "START: #{heading_tag.content} - #{heading_level}"
-    puts "CURRENT: #{element.content} - #{element.name[1].to_i}"
-
-    # Process the text of all the next elements until either
-    # the next element is a header of equivalent or higher level
-    # or the next element does not exist and the section is over
-    until element.name[1].to_i.between?(1, heading_level) || element.nil?
+    # Process the text of all the next elements until the next element does not exist and the section is over
+    # or the next element is a header of equivalent or higher level
+    until element.nil? || element.name[1].to_i.between?(1, heading_level)
       content = Formatting.format_for_slack(element)
 
       # Add the content
@@ -168,11 +164,11 @@ end
 class Formatting
   # Check and apply formatting
   def self.format_for_slack(element)
-    if element.to_s =~ /^<h/
+    if element.name =~ /h[1-6]/
       format_headers(element)
-    elsif element.to_s =~ /^<ul/
+    elsif element.name == 'ul'
       format_unordered_lists(element)
-    elsif element.to_s =~ /^<ol/
+    elsif element.name == 'ol'
       format_ordered_lists(element)
     else
       element.text
@@ -188,7 +184,7 @@ class Formatting
   def self.format_unordered_lists(element)
     list_items = []
     element.children.each do |list_item|
-      next unless list_item.to_s =~ /^<li/
+      next unless list_item.name == 'li'
       list_items << "- #{list_item.content.chomp}"
     end
     list_items.join("\n>")
@@ -199,7 +195,7 @@ class Formatting
     list_items = []
     n = 1
     element.children.each do |list_item|
-      next unless list_item.to_s =~ /^<li/
+      next unless list_item.name == 'li'
       list_items << "#{n}. #{list_item.content.chomp}"
       n += 1
     end
