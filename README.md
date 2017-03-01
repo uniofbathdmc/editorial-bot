@@ -14,7 +14,7 @@ To start the bot:
 
 1. Set the SLACK_API_TOKEN environment variable
 2. `cd` to the folder where the bot is
-3. Run `bundle exec ruby bot.rb`
+3. Run `bundle exec ruby editorial-bot.rb`
 
 ## Features
 
