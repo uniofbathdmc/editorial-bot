@@ -14,7 +14,7 @@ To start the bot:
 
 1. Set the SLACK_API_TOKEN environment variable
 2. `cd` to the folder where the bot is
-3. Run `bundle exec ruby bot.rb`
+3. Run `bundle exec ruby editorial-bot.rb`
 
 ## Features
 
@@ -45,3 +45,7 @@ The bot will check the editorial style guide for relevant guidance and post it t
 ### Bulleted lists
 
 If someone in the channel tries to bring up bulleted lists, the bot will react appropriately to avert any debate.
+
+## License
+
+This project is licensed under an Apache 2.0 license. See the [LICENSE](LICENSE) file for details.
