@@ -1,5 +1,7 @@
 # editorial-bot
 
+[![security](https://hakiri.io/github/uniofbathdmc/editorial-bot/master.svg)](https://hakiri.io/github/uniofbathdmc/editorial-bot/master)
+
 This bot provides editorial guidance on request. The guidance is based on the University of Bath's digital style guides.
 
 ## Getting it running
