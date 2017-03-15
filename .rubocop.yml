@@ -1,0 +1,14 @@
+# The authoritative version of this file is https://github.bath.ac.uk/digital/coding-standards/blob/master/.rubocop.yml
+
+# https://wiki.bath.ac.uk/display/webservices/Ruby%20coding%20conventions
+Rails:
+  Enabled: true
+
+Metrics/LineLength:
+  Max: 120
+
+# Don't check for class documentation on controllers
+# as recommended by bbatsov https://github.com/bbatsov/rubocop/issues/691#issuecomment-30923335
+Documentation:
+  Exclude:
+    - 'app/controllers/**/*'

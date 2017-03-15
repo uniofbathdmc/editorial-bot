@@ -27,10 +27,6 @@ config/unicorn.rb
 /test/reports
 /coverage
 
-# Ignore coding standards configs - these should come from https://github.bath.ac.uk/digital/coding-standards
-.rubocop.yml
-.simplecov
-
 # Ignore CTAGS indexes for Sublime
 .tags
 .tags_sorted_by_file
