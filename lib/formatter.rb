@@ -1,5 +1,5 @@
 # Apply formatting for Slack
-class Formatting
+class Formatter
   # Check and apply formatting
   def self.format_for_slack(element)
     if element.name =~ /h[1-6]/
