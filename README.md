@@ -1,6 +1,7 @@
 # editorial-bot
 
-[![security](https://hakiri.io/github/uniofbathdmc/editorial-bot/master.svg)](https://hakiri.io/github/uniofbathdmc/editorial-bot/master) [![Code Climate](https://codeclimate.com/github/uniofbathdmc/editorial-bot/badges/gpa.svg)](https://codeclimate.com/github/uniofbathdmc/editorial-bot) [![Test Coverage](https://codeclimate.com/github/uniofbathdmc/editorial-bot/badges/coverage.svg)](https://codeclimate.com/github/uniofbathdmc/editorial-bot/coverage)
+[![Travis build](https://travis-ci.org/uniofbathdmc/editorial-bot.svg?branch=master)](https://travis-ci.org/uniofbathdmc/editorial-bot)
+[![Security](https://hakiri.io/github/uniofbathdmc/editorial-bot/master.svg)](https://hakiri.io/github/uniofbathdmc/editorial-bot/master) [![Code Climate](https://codeclimate.com/github/uniofbathdmc/editorial-bot/badges/gpa.svg)](https://codeclimate.com/github/uniofbathdmc/editorial-bot) [![Test coverage](https://codeclimate.com/github/uniofbathdmc/editorial-bot/badges/coverage.svg)](https://codeclimate.com/github/uniofbathdmc/editorial-bot/coverage)
 
 This bot provides editorial guidance on request. The guidance is based on the University of Bath's digital style guides.
 

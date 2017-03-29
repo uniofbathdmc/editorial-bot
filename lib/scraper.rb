@@ -36,7 +36,7 @@ class Scraper
     # Process the text of all the next elements until the next element does not exist and the section is over
     # or the next element is a header of equivalent or higher level
     until element.nil? || element.name[1].to_i.between?(1, heading_level)
-      content = Formatting.format_for_slack(element)
+      content = Formatter.format_for_slack(element)
 
       # Add the content
       relevant_content << "> #{content}"

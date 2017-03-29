@@ -12,3 +12,6 @@ Metrics/LineLength:
 Documentation:
   Exclude:
     - 'app/controllers/**/*'
+
+Style/FrozenStringLiteralComment:
+  Enabled: false
